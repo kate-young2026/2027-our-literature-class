@@ -20,7 +20,7 @@ def footer(c,d):c.setFont('Malgun',8);c.drawString(20*mm,13*mm,'2027 우리들�
 def build(name,story):SimpleDocTemplate(str(ROOT/'pdf'/name),pagesize=(210*mm,297*mm),leftMargin=20*mm,rightMargin=20*mm,topMargin=20*mm,bottomMargin=20*mm).build(story,onFirstPage=footer,onLaterPages=footer)
 def line():return p('_______________________________________________________________________________')
 for w in items:
- prefix=[p(f"추가 탐구 {w['id']}차시 · 고1 · 50분",small),Spacer(1,3*mm),p(w['title'],title),p('연계 성취기준: '+w['standards'],small)]
+ prefix=[p(f"문학이란 {w['id']}차시 · 고1 · 50분",small),Spacer(1,3*mm),p(w['title'],title),p('연계 성취기준: '+w['standards'],small)]
  study=prefix+[p('오늘의 목표',head),p(w['goal'])]
  for h,t in w['theory']:study.extend([p(h,head),p(t)])
  study.extend([p('활동으로 연결하기',head),*[p(f'{i}. {a}') for i,a in enumerate(w['activities'],1)],p('출처: 중등교육과정 MCP 및 경기도교육청 2022 개정 국어과 성취평가 자료.',small)])

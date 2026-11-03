@@ -14,11 +14,9 @@ const quizzes = [
 ['문학을 생활화하는 활동으로 적절한 것은?',['작품을 일상과 연결해 읽고 생각을 나눈다','시험이 끝나면 작품을 다시 읽지 않는다','타인의 감상을 무시한다'],0,'읽기·대화·창작을 삶에서 이어 가는 것이 문학 향유입니다.']
 ];
 const list = document.querySelector('#lesson-list');
-if(list){
-  const foundation=document.createElement('a');foundation.className='lesson-card lesson-link foundation-link';foundation.href='basics.html';
-  foundation.innerHTML='<small>첫 시간 · 고1</small><h3>문학의 기초: 네 갈래와 작품의 구성</h3><p>작품을 읽는 데 필요한 기본 개념부터 시작해요.</p><span class="lesson-arrow" aria-hidden="true">↗</span>';
-  list.append(foundation);
-  for(const [i,title,desc] of [[1,'작품을 만나는 네 가지 시선','문학의 아름다움 · 갈래와 공감'],[2,'우리의 해석, 함께 만드는 이야기','주체적 비평 · 디지털 재구성 · 공동체']]){const link=document.createElement('a');link.className='lesson-card lesson-link foundation-link';link.href=`workshop.html?lesson=${i}`;link.innerHTML=`<small>추가 탐구 ${i}차시 · 고1</small><h3>${title}</h3><p>${desc}</p><span class="lesson-arrow" aria-hidden="true">↗</span>`;list.append(link)}
+const intro=document.querySelector('#literature-lessons');
+if(intro){
+  for(const [i,title,desc] of [[1,'문학을 만나는 첫걸음','문학의 정의 · 네 갈래 · 작품의 구성'],[2,'나와 우리를 잇는 문학','감상의 관점 · 비평 · 공동체']]){const link=document.createElement('a');link.className='lesson-card lesson-link foundation-link';link.href=`workshop.html?lesson=${i}`;link.innerHTML=`<small>문학이란 ${i}차시 · 고1</small><h3>${title}</h3><p>${desc}</p><span class="lesson-arrow" aria-hidden="true">↗</span>`;intro.append(link)}
 }
 const profiles={
  '윤동주':['1917~1945. 일제강점기에 활동한 시인으로, 자신의 삶과 시대를 성찰하는 시를 남겼다.','「서시」, 「별 헤는 밤」, 『하늘과 바람과 별과 시』','https://encykorea.aks.ac.kr/Article/E0042294'],
@@ -55,8 +53,7 @@ for (const lesson of LESSONS) {
 const pdfList=document.querySelector('#pdf-list');
 if(pdfList){
 for(const [label,href] of [['학생용 전체 자료','pdf/student-complete.pdf'],['교사용 수업안과 예시답안','pdf/teacher-guide.pdf']]){const a=document.createElement('a');a.className='pdf-link';a.href=href;a.download='';a.textContent=label+' ↓';pdfList.append(a)}
-const foundationFiles=document.createElement('div');foundationFiles.className='pdf-item';foundationFiles.innerHTML='<strong>첫 시간 · 문학 기초</strong><a href="pdf/foundation-study.pdf" download>학습자료 ↓</a><a href="pdf/foundation-worksheet.pdf" download>활동지 ↓</a>';pdfList.append(foundationFiles);
-for(const i of [1,2]){const box=document.createElement('div');box.className='pdf-item';box.innerHTML=`<strong>추가 탐구 ${i}차시</strong><a href="pdf/workshop-${i}-study.pdf" download>학습자료 ↓</a><a href="pdf/workshop-${i}-worksheet.pdf" download>활동지 ↓</a><a href="pdf/workshop-${i}-group.pdf" download>모둠활동 ↓</a>`;pdfList.append(box)}
+for(const i of [1,2]){const box=document.createElement('div');box.className='pdf-item';box.innerHTML=`<strong>문학이란 ${i}차시</strong><a href="pdf/workshop-${i}-study.pdf" download>학습자료 ↓</a><a href="pdf/workshop-${i}-worksheet.pdf" download>활동지 ↓</a><a href="pdf/workshop-${i}-group.pdf" download>모둠활동 ↓</a>`;pdfList.append(box)}
 for(const lesson of LESSONS){const n=String(lesson.lesson).padStart(2,'0'),box=document.createElement('div');box.className='pdf-item';box.innerHTML=`<strong>${n}차시</strong><a href="pdf/lesson-${n}-study.pdf" download>학습자료 ↓</a><a href="pdf/lesson-${n}-worksheet.pdf" download>활동지 ↓</a>`;pdfList.append(box)}
 }
 const lessonView=document.querySelector('#lesson-content');
