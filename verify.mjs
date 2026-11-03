@@ -22,5 +22,5 @@ for (let i = 0; i < lessons.length; i++) {
 }
 for (const name of ['student-complete','teacher-guide']) assert.equal(fs.readFileSync(`pdf/${name}.pdf`).subarray(0,5).toString(),'%PDF-');
 const html = fs.readFileSync('index.html','utf8');
-for (const id of ['main','lessons','works','timeline','downloads','sources','lesson-list','pdf-list','lesson-dialog','dialog-content','close-dialog']) assert.ok(html.includes(`id="${id}"`), id);
+for (const id of ['main','lessons','works','timeline','downloads','sources','lesson-list','pdf-list']) assert.ok(html.includes(`id="${id}"`), id);
 console.log('12 lessons, five standards, 26 PDF headers, and page targets verified.');

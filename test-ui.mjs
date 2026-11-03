@@ -1,34 +1,22 @@
-// Fast DOM contract check; this does not replace testing in a real browser.
 import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
-
 class Element {
-  constructor() { this.children=[]; this.handlers={}; this.innerHTML=''; this.open=false; }
-  append(child) { this.children.push(child); }
-  addEventListener(name, fn) { this.handlers[name]=fn; }
-  showModal() { this.open=true; }
-  close() { this.open=false; }
-  click() { this.handlers.click?.(); }
+  constructor(){this.children=[];this.handlers={};this.innerHTML='';this.nodes={};this.textContent='';}
+  append(x){this.children.push(x)}
+  addEventListener(name,fn){this.handlers[name]=fn}
+  click(){this.handlers.click?.()}
+  querySelector(sel){return this.nodes[sel]??=new Element()}
 }
-const ids = Object.fromEntries(['#lesson-list','#lesson-dialog','#dialog-content','#close-dialog','#pdf-list'].map(id=>[id,new Element()]));
+const ids={'#lesson-list':new Element(),'#pdf-list':new Element()};
 const document={querySelector:id=>ids[id],createElement:()=>new Element()};
 const context=vm.createContext({document});
-vm.runInContext(fs.readFileSync('lessons.js','utf8')+'\n'+fs.readFileSync('app.js','utf8'),context);
-assert.equal(ids['#lesson-list'].children.length,12);
-assert.equal(ids['#pdf-list'].children.length,14);
-for (let i=0;i<12;i++) {
-  ids['#lesson-list'].children[i].click();
-  assert.equal(ids['#lesson-dialog'].open,true);
-  assert.ok(ids['#dialog-content'].innerHTML.includes(`${i+1}차시`));
-  ids['#close-dialog'].click();
-  assert.equal(ids['#lesson-dialog'].open,false);
-  const html=ids['#pdf-list'].children[i+2].innerHTML;
-  const n=String(i+1).padStart(2,'0');
-  for(const type of ['study','worksheet']) {
-    const path=`pdf/lesson-${n}-${type}.pdf`;
-    assert.ok(html.includes(path)); assert.ok(fs.existsSync(path));
-  }
+vm.runInContext(fs.readFileSync('lessons.js','utf8')+'\n'+fs.readFileSync('app.js','utf8')+'\nthis.quiz=quizzes;',context);
+assert.equal(ids['#lesson-list'].children.length,12);assert.equal(ids['#pdf-list'].children.length,14);
+for(let i=0;i<12;i++){
+ const card=ids['#lesson-list'].children[i], n=String(i+1).padStart(2,'0'), opts=card.querySelector('.quiz-options').children,feedback=card.querySelector('.quiz-feedback');
+ assert.ok(card.innerHTML.includes('고1'));assert.ok(!card.innerHTML.includes('10공국'));
+ for(const type of ['study','worksheet']){const p=`pdf/lesson-${n}-${type}.pdf`;assert.ok(card.innerHTML.includes(p));assert.ok(fs.existsSync(p));}
+ assert.equal(opts.length,3);opts[context.quiz[i][2]].click();assert.ok(feedback.textContent.startsWith('정답입니다!'));opts[(context.quiz[i][2]+1)%3].click();assert.ok(feedback.textContent.startsWith('다시 생각해 보세요.'));
 }
-for(const item of ids['#pdf-list'].children.slice(0,2)) assert.ok(fs.existsSync(item.href));
-console.log('12 lesson dialogs and 26 PDF link targets passed DOM contract check.');
+console.log('12 inline lessons, 24 lesson links and 12 quiz answers passed DOM checks.');
