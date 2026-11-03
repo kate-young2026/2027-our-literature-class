@@ -28,14 +28,28 @@ const profiles={
 function profileDetails(text){return Object.entries(profiles).filter(([name])=>text.includes(name)).map(([name,[bio,works,url]])=>`<details class="author-profile"><summary>${name} 작가 알아보기</summary><p>${bio}</p><p><strong>대표 작품</strong> ${works}</p><a href="${url.replaceAll('&','&amp;')}">출처 보기 ↗</a></details>`).join('')}
 for (const lesson of LESSONS) {
   const n=String(lesson.lesson).padStart(2,'0'), q=quizzes[lesson.lesson-1];
+  if (list) {
+    const link=document.createElement('a');
+    link.className='lesson-card lesson-link';
+    link.href=`lesson.html?lesson=${lesson.lesson}`;
+    link.innerHTML=`<small>LESSON ${n} · 고1</small><h3>${lesson.title}</h3><p>${lesson.text}</p><span class="lesson-arrow" aria-hidden="true">↗</span>`;
+    list.append(link);
+    continue;
+  }
+  const lessonView=document.querySelector('#lesson-content');
+  if(!lessonView || new URLSearchParams(location.search).get('lesson')!==String(lesson.lesson)) continue;
   const article=document.createElement('article');
   article.className='lesson-card lesson-detail';
   article.id=`lesson-${n}`;
   article.innerHTML=`<small>LESSON ${n} · 고1 · 50분</small><h3>${lesson.title}</h3><p><strong>함께 읽을 작품</strong> ${lesson.text}</p>${profileDetails(lesson.text)}<p><strong>교과서 연계</strong> ${lesson.book}</p><h4>오늘의 배움</h4><p>${lesson.goal}</p><h4>핵심 개념</h4><p>${lesson.concept}</p><h4>읽기 도움말</h4><p>${lesson.reading}</p><h4>생각하고 활동하기</h4><ol>${lesson.questions.map(x=>`<li>${x}</li>`).join('')}</ol><h4>선택 도전</h4><p>${lesson.challenge}</p><h4>수업을 마치며</h4><p>${lesson.exit}</p><div class="lesson-download"><a href="pdf/lesson-${n}-study.pdf" download>학습자료 PDF ↓</a><a href="pdf/lesson-${n}-worksheet.pdf" download>활동지 PDF ↓</a></div><div class="quiz"><h4>온라인 퀴즈</h4><p>${q[0]}</p><div class="quiz-options"></div><p class="quiz-feedback" role="status" aria-live="polite"></p></div>`;
   const options=article.querySelector('.quiz-options'), feedback=article.querySelector('.quiz-feedback');
   q[1].forEach((option,index)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=option;btn.addEventListener('click',()=>{feedback.textContent=(index===q[2]?'정답입니다! ':'다시 생각해 보세요. ')+q[3];});options.append(btn)});
-  list.append(article);
+  lessonView.append(article);
 }
 const pdfList=document.querySelector('#pdf-list');
+if(pdfList){
 for(const [label,href] of [['학생용 전체 자료','pdf/student-complete.pdf'],['교사용 수업안과 예시답안','pdf/teacher-guide.pdf']]){const a=document.createElement('a');a.className='pdf-link';a.href=href;a.download='';a.textContent=label+' ↓';pdfList.append(a)}
 for(const lesson of LESSONS){const n=String(lesson.lesson).padStart(2,'0'),box=document.createElement('div');box.className='pdf-item';box.innerHTML=`<strong>${n}차시</strong><a href="pdf/lesson-${n}-study.pdf" download>학습자료 ↓</a><a href="pdf/lesson-${n}-worksheet.pdf" download>활동지 ↓</a>`;pdfList.append(box)}
+}
+const lessonView=document.querySelector('#lesson-content');
+if(lessonView && !lessonView.children.length) lessonView.innerHTML='<p>해당 차시를 찾을 수 없습니다. <a href="index.html#lessons">전체 차시로 돌아가기</a></p>';
