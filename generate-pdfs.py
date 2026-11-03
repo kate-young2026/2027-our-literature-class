@@ -6,7 +6,7 @@ from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, KeepTogether, HRFlowable
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, KeepTogether, HRFlowable, Table, TableStyle
 from xml.sax.saxutils import escape
 
 ROOT = Path(__file__).resolve().parent
@@ -14,6 +14,12 @@ OUT = ROOT / 'pdf'
 OUT.mkdir(exist_ok=True)
 node = "const fs=require('fs'),vm=require('vm');vm.runInThisContext(fs.readFileSync('lessons.js','utf8')+';process.stdout.write(JSON.stringify(LESSONS))')"
 lessons = json.loads(subprocess.check_output(['node', '-e', node], cwd=ROOT).decode('utf-8'))
+node_quizzes = "const fs=require('fs'),vm=require('vm');const s=fs.readFileSync('app.js','utf8').split('const list =')[0];vm.runInThisContext(s+';process.stdout.write(JSON.stringify(quizzes))')"
+quizzes = json.loads(subprocess.check_output(['node','-e',node_quizzes],cwd=ROOT).decode('utf-8'))
+node_flows = "const fs=require('fs'),vm=require('vm');const s=fs.readFileSync('app.js','utf8');const a=s.indexOf('const lessonFlows=');const b=s.indexOf('function lessonInfographic',a);vm.runInThisContext(s.slice(a,b)+';process.stdout.write(JSON.stringify(lessonFlows))')"
+flows = json.loads(subprocess.check_output(['node','-e',node_flows],cwd=ROOT).decode('utf-8'))
+node_workshops = "const fs=require('fs'),vm=require('vm');vm.runInThisContext(fs.readFileSync('workshops.js','utf8')+';process.stdout.write(JSON.stringify(WORKSHOPS))')"
+workshops = json.loads(subprocess.check_output(['node','-e',node_workshops],cwd=ROOT).decode('utf-8'))
 pdfmetrics.registerFont(TTFont('Malgun', 'C:/Windows/Fonts/malgun.ttf'))
 pdfmetrics.registerFont(TTFont('MalgunBold', 'C:/Windows/Fonts/malgunbd.ttf'))
 styles = getSampleStyleSheet()
@@ -39,14 +45,26 @@ def build(path, story):
 def heading(lesson, label):
     return [para(f"{lesson['lesson']:02d} / {label}  ·  {lesson['standard']}  ·  50분", 'KSmall'), Spacer(1, 5*mm), para(lesson['title'], 'KTitle'), para('함께 읽을 작품: ' + lesson['text'], 'KSmall'), para('교과서 연계: ' + lesson['book'], 'KSmall'), HRFlowable(width='100%', color=colors.HexColor('#dd8b78')), Spacer(1, 5*mm)]
 
+def visual(lesson):
+    title,*steps=flows[lesson['lesson']-1]
+    cells=[]
+    for item in steps:
+        label,description=item.split('|',1);cells.append([para(label,'KSmall'),para(description,'KSmall')])
+    table=Table([cells],colWidths=[170*mm/len(cells)]*len(cells),hAlign='LEFT')
+    table.setStyle(TableStyle([('VALIGN',(0,0),(-1,-1),'TOP'),('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#f1f4eb')),('GRID',(0,0),(-1,-1),.5,colors.HexColor('#cdd9ca')),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]))
+    return [para('한눈에 이해하기: '+title,'KHead'),table]
+
 def study(lesson):
-    return heading(lesson, '학습자료') + [para('오늘의 학습 목표', 'KHead'), para(lesson['goal']), para('핵심 개념', 'KHead'), para(lesson['concept']), para('작품과 맥락 읽기', 'KHead'), para(lesson['reading']), para('읽기 전 생각 열기', 'KHead'), para(lesson['questions'][0]), para('읽으며 확인하기', 'KHead'), para('교과서나 도서관의 작품을 읽으면서 화자·인물·표현 등 질문에 필요한 근거에 표시합니다. 저작권 보호 작품의 전문은 이 자료에 포함하지 않습니다.'), para('더 깊이 생각하기', 'KHead'), para(lesson['questions'][1]), para('선택 도전', 'KHead'), para(lesson['challenge']), para('오늘 배움을 정리하며', 'KHead'), para(lesson['exit'])]
+    return heading(lesson, '학습자료') + [para('오늘의 학습 목표', 'KHead'), para(lesson['goal'])] + visual(lesson) + [para('핵심 개념', 'KHead'), para(lesson['concept']), para('작품과 맥락 읽기', 'KHead'), para(lesson['reading']), para('읽기 전 생각 열기', 'KHead'), para(lesson['questions'][0]), para('읽으며 확인하기', 'KHead'), para('교과서나 도서관의 작품에서 질문에 필요한 근거를 찾아 표시합니다. 저작권 보호 작품 전문은 포함하지 않습니다.'), para('선택 도전', 'KHead'), para(lesson['challenge']), para('오늘 배움을 정리하며', 'KHead'), para(lesson['exit'])]
 
 def worksheet(lesson):
     story = heading(lesson, '활동지') + [para('학년·반: __________    번호: __________    이름: __________________', 'KSmall'), Spacer(1, 5*mm)]
     for i, q in enumerate(lesson['questions'], 1):
         story.extend([para(f'활동 {i}', 'WHead'), para(q), para('________________________________________________________________________'), para('________________________________________________________________________'), para('________________________________________________________________________')])
     story.extend([para('선택 도전', 'WHead'), para(lesson['challenge']), para('마무리', 'WHead'), para(lesson['exit']), para('________________________________________________________________________'), para('자기평가: □ 작품의 근거를 찾았다  □ 다른 의견을 존중했다  □ 배운 점을 설명할 수 있다', 'KSmall')])
+    question,choices,answer,explanation=quizzes[lesson['lesson']-1]
+    story.append(KeepTogether([para('확인 퀴즈','WHead'),para(question,'KSmall')]+[para('□ '+choice,'KSmall') for choice in choices]))
+    story.extend([para('답을 고른 이유','WHead'),para('________________________________________________________________________'),para('________________________________________________________________________'),para('관련된 작품의 단서 또는 수업에서 새롭게 알게 된 점','WHead'),para('________________________________________________________________________'),para('________________________________________________________________________')])
     return story
 
 guide_notes = [
@@ -78,7 +96,11 @@ model_responses = [
 ('작품의 고향이나 관계에 대한 물음을 세종의 장소 또는 자신의 경험에 연결하는 질문을 만든다.', '직접 쓴 소개와 해석, 직접 만든 시각 자료와 출처를 한 면에 배치한다.', '친구의 작품에서 자신과 다른 관점 한 가지를 구체적으로 소개하고 그 이유를 적는다.')]
 
 def teacher():
-    story = [para('교사용 수업안과 예시답안', 'KCover'), para('12차시 · 50분 수업 · 공통국어 문학', 'KSmall'), para('교과서와 작품은 정식으로 이용 가능한 자료를 준비한다. 예시답안은 가능한 해석의 하나이며 작품에 근거한 다양한 답을 인정한다.'), PageBreak()]
+    story = [para('교사용 수업안과 예시답안', 'KCover'), para('문학이란 2차시 + 성취기준별 12차시 · 50분 수업', 'KSmall'), para('교과서와 작품은 정식으로 이용 가능한 자료를 준비한다. 예시답안은 가능한 해석의 하나이며 작품에 근거한 다양한 답을 인정한다.'), PageBreak()]
+    for w in workshops:
+        story.extend([para('문학이란 '+str(w['id'])+'차시','KSmall'),para(w['title'],'KTitle'),para('연계 성취기준: '+w['standards'],'KSmall'),para('학습 목표','KHead'),para(w['goal']),para('50분 운영','KHead'),para('도입 5분 → 개념과 작품 읽기 10분 → 개인 탐구 10분 → 모둠활동 15분 → 공유·성찰 10분'),para('모둠활동 안내','KHead')]+[para(x) for x in w['group']]+[para('퀴즈 정답과 해설','KHead')])
+        for i,(question,choices,answer,explanation) in enumerate(w['quiz'],1):story.append(para(f'{i}. {choices[answer]} — {explanation}'))
+        story.extend([para('평가','KHead'),para('작품 근거의 적절성, 갈래와 맥락 이해, 타인의 관점 존중과 공동체 성찰을 관찰한다.'),PageBreak()])
     for l, (method, answer, caution), responses in zip(lessons, guide_notes, model_responses):
         story.extend(heading(l, '교사용 수업안'))
         for label, value in [('학습 목표', l['goal']), ('준비물과 사전 읽기', '교과서 또는 정식 열람 자료, 필기구, 차시별 학습자료와 활동지. 긴 소설은 수업 전 지정 부분을 읽도록 안내한다.'), ('50분 수업 흐름', f'도입 5분: 첫 질문으로 경험을 연결한다. 개념·읽기 10분: 핵심 개념과 작품 맥락을 확인한다. 개인 탐구 10분: 작품 근거를 찾는다. 모둠 활동 15분: {method} 정리 10분: 발표와 마무리 문항을 수행한다.'), ('핵심 발문', ' / '.join(l['questions'])), ('예시답안과 해설', answer), ('지도상 유의점', caution), ('평가와 지원', '상: 작품의 구체적 근거와 개념을 연결해 설명한다. 중: 질문에 맞는 작품 근거와 생각을 제시한다. 보완 필요: 교사의 단서 질문과 동료의 도움을 받아 관련 장면을 찾는다. 다른 타당한 해석도 인정한다.'), ('마무리 확인', l['exit'])]:
@@ -86,6 +108,8 @@ def teacher():
         story.extend([PageBreak()] + heading(l, '활동별 답안 예시'))
         for i, response in enumerate(responses, 1):
             story.extend([para(f'활동 {i}', 'KHead'), para(l['questions'][i-1]), para('답안 예시: ' + response)])
+        question,choices,answer,explanation=quizzes[l['lesson']-1]
+        story.extend([para('확인 퀴즈 정답','KHead'),para(choices[answer]+' — '+explanation)])
         if l['lesson'] != 12: story.append(PageBreak())
     return story
 
@@ -93,10 +117,19 @@ for lesson in lessons:
     n = lesson['lesson']
     build(OUT / f'lesson-{n:02d}-study.pdf', study(lesson))
     build(OUT / f'lesson-{n:02d}-worksheet.pdf', worksheet(lesson))
-pack = [para('학생용 학습자료와 활동지', 'KCover'), para('2027 우리들의 문학수업 · 12차시', 'KSmall'), PageBreak()]
+pack = [para('학생용 학습자료와 활동지', 'KCover'), para('2027 우리들의 문학수업 · 문학이란 2차시 + 12차시', 'KSmall'), PageBreak()]
 for lesson in lessons:
     pack += study(lesson) + [PageBreak()] + worksheet(lesson)
     if lesson['lesson'] != 12: pack.append(PageBreak())
 build(OUT / 'student-complete.pdf', pack)
+from pypdf import PdfReader, PdfWriter
+from io import BytesIO
+original=PdfReader(str(OUT / 'student-complete.pdf'))
+combined=PdfWriter();combined.add_page(original.pages[0])
+for i in (1,2):
+    for kind in ('study','worksheet','group'):
+        combined.append(str(OUT / f'workshop-{i}-{kind}.pdf'))
+for page in original.pages[1:]:combined.add_page(page)
+buffer=BytesIO();combined.write(buffer);(OUT / 'student-complete.pdf').write_bytes(buffer.getvalue())
 build(OUT / 'teacher-guide.pdf', teacher())
 print('Created', len(list(OUT.glob('*.pdf'))), 'PDF files')
