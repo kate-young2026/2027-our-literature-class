@@ -25,4 +25,5 @@ const html = fs.readFileSync('index.html','utf8');
 for (const id of ['main','literature','literature-lessons','lessons','works','timeline','downloads','sources','lesson-list','pdf-list']) assert.ok(html.includes(`id="${id}"`), id);
 assert.ok(html.includes('href="#literature"'));
 for(const page of ['lesson.html','workshop.html']) assert.ok(fs.readFileSync(page,'utf8').includes('href="index.html#literature"'),page);
+for(const page of ['index.html','lesson.html','workshop.html']) assert.ok(fs.readFileSync(page,'utf8').includes('href="admin.html"'),`${page}: admin link`);
 console.log('12 lessons, five standards, 26 PDF headers, and page targets verified.');
