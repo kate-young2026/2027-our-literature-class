@@ -10,6 +10,7 @@ for(let i=0;i<12;i++){
  const n=String(i+1).padStart(2,'0');assert.equal(list.children[i].href,`lesson.html?lesson=${i+1}`);
  const view=new Element(),ctx=render({'#lesson-content':view},`?lesson=${i+1}`);assert.equal(view.children.length,1);
  const card=view.children[0],opts=card.querySelector('.quiz-options').children,feedback=card.querySelector('.quiz-feedback');
+ assert.ok(card.innerHTML.includes('한눈에 이해하기'));assert.ok(card.innerHTML.includes('flow-list'));
  assert.ok(card.innerHTML.includes('고1'));assert.ok(!card.innerHTML.includes('10공국'));
  for(const type of ['study','worksheet']){const p=`pdf/lesson-${n}-${type}.pdf`;assert.ok(card.innerHTML.includes(p));assert.ok(fs.existsSync(p));}
  assert.equal(opts.length,3);opts[ctx.quiz[i][2]].click();assert.ok(feedback.textContent.startsWith('정답입니다!'));opts[(ctx.quiz[i][2]+1)%3].click();assert.ok(feedback.textContent.startsWith('다시 생각해 보세요.'));

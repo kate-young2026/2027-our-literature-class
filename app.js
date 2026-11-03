@@ -30,6 +30,21 @@ const profiles={
  '나희덕':['1966년 충남 논산 출생의 시인으로 1989년 「뿌리에게」로 등단했다.','『뿌리에게』, 『그곳이 멀지 않다』','https://www.changbi.com/BookDetail?bookid=446']
 };
 function profileDetails(text){return Object.entries(profiles).filter(([name])=>text.includes(name)).map(([name,[bio,works,url]])=>`<details class="author-profile"><summary>${name} 작가 알아보기</summary><p>${bio}</p><p><strong>대표 작품</strong> ${works}</p><a href="${url.replaceAll('&','&amp;')}">출처 보기 ↗</a></details>`).join('')}
+const lessonFlows=[
+ ['문학 소통의 연결','작가|표현하다','작품|의미를 담다','독자|감상하고 나누다'],
+ ['서로 다른 해석이 만날 때','작품의 단서|무엇이 보이나요?','나의 해석|어떻게 느꼈나요?','문학 대화|다른 관점은?'],
+ ['서정과 서사의 목소리','서정|화자의 정서와 이미지','서사|서술자가 전하는 사건','비교|표현의 효과'],
+ ['갈래별 표현 방식','서정|정서와 이미지','서사|인물과 사건','극|대사와 행동','교술|관찰과 생각'],
+ ['소설을 이루는 연결','인물|누가 선택할까?','사건|무슨 일이 일어날까?','배경·시점|어떻게 보일까?','주제|무엇을 생각할까?'],
+ ['시점을 바꾸면?','원래 장면|누가 알고 있나요?','새 시점|누가 말하나요?','변화된 효과|무엇이 새롭게 보이나요?'],
+ ['1920년대 두 작품을 비교해요','님의 침묵|상실과 만남','향수|감각과 고향','비교|같은 시대, 다른 표현'],
+ ['시대의 경험을 표현하는 두 방식','참여시|반복과 대립','소설|인물과 회고','연결|시대와 문학'],
+ ['지역 문학의 흐름을 살펴요','1920년대|상실과 기억','1960~70년대|역사와 변화','1980년대 이후|관계와 성찰'],
+ ['근거 있는 해석의 세 단계','주장|내가 발견한 의미','근거|작품의 단서','설명|근거와 주장의 연결'],
+ ['비평의 세 가지 질문','기준|무엇을 중요하게 볼까?','근거|어떤 표현이 뒷받침할까?','평가|어떤 가치가 있을까?'],
+ ['문학을 생활 속으로','선택|마음에 남는 작품','연결|나와 지역의 경험','공유|잡지와 대화']
+];
+function lessonInfographic(number){const [title,...steps]=lessonFlows[number-1];return `<section class="infographic lesson-infographic" aria-label="${title}"><div class="infographic-heading"><span>한눈에 이해하기</span><h4>${title}</h4></div><ol class="flow-list">${steps.map(step=>{const [label,desc]=step.split('|');return `<li><b>${label}</b><span>${desc}</span></li>`}).join('')}</ol></section>`}
 for (const lesson of LESSONS) {
   const n=String(lesson.lesson).padStart(2,'0'), q=quizzes[lesson.lesson-1];
   if (list) {
@@ -45,7 +60,7 @@ for (const lesson of LESSONS) {
   const article=document.createElement('article');
   article.className='lesson-card lesson-detail';
   article.id=`lesson-${n}`;
-  article.innerHTML=`<small>LESSON ${n} · 고1 · 50분</small><h3>${lesson.title}</h3><p><strong>함께 읽을 작품</strong> ${lesson.text}</p>${profileDetails(lesson.text)}<p><strong>교과서 연계</strong> ${lesson.book}</p><h4>오늘의 배움</h4><p>${lesson.goal}</p><h4>핵심 개념</h4><p>${lesson.concept}</p><h4>읽기 도움말</h4><p>${lesson.reading}</p><h4>생각하고 활동하기</h4><ol>${lesson.questions.map(x=>`<li>${x}</li>`).join('')}</ol><h4>선택 도전</h4><p>${lesson.challenge}</p><h4>수업을 마치며</h4><p>${lesson.exit}</p><div class="lesson-download"><a href="pdf/lesson-${n}-study.pdf" download>학습자료 PDF ↓</a><a href="pdf/lesson-${n}-worksheet.pdf" download>활동지 PDF ↓</a></div><div class="quiz"><h4>온라인 퀴즈</h4><p>${q[0]}</p><div class="quiz-options"></div><p class="quiz-feedback" role="status" aria-live="polite"></p></div>`;
+  article.innerHTML=`<small>LESSON ${n} · 고1 · 50분</small><h3>${lesson.title}</h3><p><strong>함께 읽을 작품</strong> ${lesson.text}</p>${profileDetails(lesson.text)}<p><strong>교과서 연계</strong> ${lesson.book}</p><h4>오늘의 배움</h4><p>${lesson.goal}</p>${lessonInfographic(lesson.lesson)}<h4>핵심 개념</h4><p>${lesson.concept}</p><h4>읽기 도움말</h4><p>${lesson.reading}</p><h4>생각하고 활동하기</h4><ol>${lesson.questions.map(x=>`<li>${x}</li>`).join('')}</ol><h4>선택 도전</h4><p>${lesson.challenge}</p><h4>수업을 마치며</h4><p>${lesson.exit}</p><div class="lesson-download"><a href="pdf/lesson-${n}-study.pdf" download>학습자료 PDF ↓</a><a href="pdf/lesson-${n}-worksheet.pdf" download>활동지 PDF ↓</a></div><div class="quiz"><h4>온라인 퀴즈</h4><p>${q[0]}</p><div class="quiz-options"></div><p class="quiz-feedback" role="status" aria-live="polite"></p></div>`;
   const options=article.querySelector('.quiz-options'), feedback=article.querySelector('.quiz-feedback');
   q[1].forEach((option,index)=>{const btn=document.createElement('button');btn.type='button';btn.textContent=option;btn.addEventListener('click',()=>{feedback.textContent=(index===q[2]?'정답입니다! ':'다시 생각해 보세요. ')+q[3];});options.append(btn)});
   lessonView.append(article);
