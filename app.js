@@ -14,6 +14,11 @@ const quizzes = [
 ['문학을 생활화하는 활동으로 적절한 것은?',['작품을 일상과 연결해 읽고 생각을 나눈다','시험이 끝나면 작품을 다시 읽지 않는다','타인의 감상을 무시한다'],0,'읽기·대화·창작을 삶에서 이어 가는 것이 문학 향유입니다.']
 ];
 const list = document.querySelector('#lesson-list');
+if(list){
+  const foundation=document.createElement('a');foundation.className='lesson-card lesson-link foundation-link';foundation.href='basics.html';
+  foundation.innerHTML='<small>첫 시간 · 고1</small><h3>문학의 기초: 네 갈래와 작품의 구성</h3><p>작품을 읽는 데 필요한 기본 개념부터 시작해요.</p><span class="lesson-arrow" aria-hidden="true">↗</span>';
+  list.append(foundation);
+}
 const profiles={
  '윤동주':['1917~1945. 일제강점기에 활동한 시인으로, 자신의 삶과 시대를 성찰하는 시를 남겼다.','「서시」, 「별 헤는 밤」, 『하늘과 바람과 별과 시』','https://encykorea.aks.ac.kr/Article/E0042294'],
  '김초엽':['2017년 「관내분실」로 한국과학문학상 중단편 부문 대상을 받으며 작품 활동을 시작한 소설가다.','「관내분실」, 『우리가 빛의 속도로 갈 수 없다면』, 『지구 끝의 온실』','https://www.blossomenter.com/ko/?c=146&gbn=viewok&gp=1&ix=232&s='],
@@ -49,6 +54,7 @@ for (const lesson of LESSONS) {
 const pdfList=document.querySelector('#pdf-list');
 if(pdfList){
 for(const [label,href] of [['학생용 전체 자료','pdf/student-complete.pdf'],['교사용 수업안과 예시답안','pdf/teacher-guide.pdf']]){const a=document.createElement('a');a.className='pdf-link';a.href=href;a.download='';a.textContent=label+' ↓';pdfList.append(a)}
+const foundationFiles=document.createElement('div');foundationFiles.className='pdf-item';foundationFiles.innerHTML='<strong>첫 시간 · 문학 기초</strong><a href="pdf/foundation-study.pdf" download>학습자료 ↓</a><a href="pdf/foundation-worksheet.pdf" download>활동지 ↓</a>';pdfList.append(foundationFiles);
 for(const lesson of LESSONS){const n=String(lesson.lesson).padStart(2,'0'),box=document.createElement('div');box.className='pdf-item';box.innerHTML=`<strong>${n}차시</strong><a href="pdf/lesson-${n}-study.pdf" download>학습자료 ↓</a><a href="pdf/lesson-${n}-worksheet.pdf" download>활동지 ↓</a>`;pdfList.append(box)}
 }
 const lessonView=document.querySelector('#lesson-content');
